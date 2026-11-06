@@ -22,6 +22,7 @@ $(BUILD)/feilian-auth: src/feilian-auth.swift | $(BUILD)
 
 check:
 	bash -n scripts/*.sh
+	bash -n scripts/feilianctl
 	plutil -lint launchd/com.feiliancontrol.helper.plist
 	$(SWIFTC) $(SWIFTFLAGS) -typecheck src/feilian-daemon.swift
 	$(SWIFTC) $(SWIFTFLAGS) -typecheck -framework LocalAuthentication src/feilian-auth.swift
