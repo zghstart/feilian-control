@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="2">
+    <title>飞连控制</title>
+    <organization>com.feiliancontrol</organization>
+    <domains enable_localSystem="true" enable_currentUserHome="false" enable_anywhere="false"/>
+    <options customize="never" require-scripts="false" hostArchitectures="x86_64,arm64"/>
+    <welcome file="welcome.html" mime-type="text/html"/>
+    <license file="LICENSE.txt" mime-type="text/plain"/>
+    <choices-outline>
+        <line choice="default">
+            <line choice="com.feiliancontrol.pkg"/>
+        </line>
+    </choices-outline>
+    <choice id="default" title="飞连控制"/>
+    <choice id="com.feiliancontrol.pkg" visible="false">
+        <pkg-ref id="com.feiliancontrol.pkg"/>
+    </choice>
+    <pkg-ref id="com.feiliancontrol.pkg" onConclusion="none">component.pkg</pkg-ref>
+</installer-gui-script>

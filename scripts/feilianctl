@@ -1,17 +1,33 @@
 #!/bin/bash
-# 用户级入口：先弹 Touch ID，再把 stop/start 发给 root 助手。
-# status 不需要 root，也不弹 Touch ID。
+# 用户级入口：
+#   stop/start 通过 root 助手执行固定脚本，是否验证由 /usr/local/etc/feilian-control.conf 决定
+#   stop-ui    只退出飞连界面
+#   status/auth 不需要 root，也不弹验证
 set -u
+
+CONFIG="/usr/local/etc/feilian-control.conf"
 
 case "${1:-}" in
   stop|start)
     exec /usr/local/libexec/feilian/feilian-auth "$1"
     ;;
+  stop-ui)
+    /usr/bin/pkill -TERM -x CorpLink 2>/dev/null || true
+    echo "已请求退出飞连界面"
+    ;;
   status)
     exec /bin/bash /usr/local/libexec/feilian/status.sh
     ;;
+  auth)
+    if [[ -r "$CONFIG" ]]; then
+      mode="$(/usr/bin/awk -F= '/^AUTH_MODE=/{print $2; exit}' "$CONFIG")"
+      echo "AUTH_MODE=${mode:-touchid}"
+    else
+      echo "AUTH_MODE=none (default)"
+    fi
+    ;;
   *)
-    echo "usage: feilianctl stop|start|status" >&2
+    echo "usage: feilianctl stop|start|stop-ui|status|auth" >&2
     exit 64
     ;;
 esac

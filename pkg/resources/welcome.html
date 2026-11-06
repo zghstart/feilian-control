@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+    body {
+        font-family: -apple-system, "PingFang SC", sans-serif;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #1d1d1f;
+        margin: 0;
+        padding: 0 4px;
+    }
+    h2 { font-size: 16px; margin: 0 0 8px; }
+    ul { margin: 6px 0 10px; padding-left: 20px; }
+    li { margin: 4px 0; }
+    .note {
+        background: #f2f2f7;
+        border-radius: 6px;
+        padding: 8px 10px;
+        margin-top: 10px;
+    }
+    code {
+        font-family: "SF Mono", Menlo, monospace;
+        font-size: 12px;
+    }
+</style>
+</head>
+<body>
+<h2>飞连控制</h2>
+<p>这个安装包会安装：</p>
+<ul>
+    <li>一个菜单栏 App“飞连控制”</li>
+    <li>一个只接受“停用 / 恢复”两个固定命令的 root 助手</li>
+    <li>命令行工具 <code>feilianctl</code></li>
+</ul>
+
+<p>安装时输入<strong>一次</strong>管理员密码。之后日常停用 / 恢复不再需要密码，默认也不弹 Touch ID。</p>
+
+<div class="note">
+    <p><strong>未签名提示：</strong>当前安装包没有 Apple Developer ID 签名和公证。如果 macOS 提示无法验证开发者，请右键点击安装包 → 打开；或在终端运行：</p>
+    <p><code>sudo installer -pkg ~/Downloads/FeiLianControl-0.2.0.pkg -target /</code></p>
+</div>
+
+<p>安装完成后，打开“飞连控制.app”，菜单栏会出现盾牌图标。点击图标即可停用全部后台、仅退出界面，或恢复飞连。</p>
+
+<p>请只在你有权管理的设备上使用。停用企业安全客户端可能违反公司 IT / BYOD 政策。</p>
+</body>
+</html>

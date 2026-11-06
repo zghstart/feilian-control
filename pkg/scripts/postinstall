@@ -1,0 +1,29 @@
+#!/bin/bash
+# 安装后修正权限、创建默认配置并启动助手。
+set -e
+
+LABEL="com.feiliancontrol.helper"
+DEST="/usr/local/libexec/feilian"
+PLIST="/Library/LaunchDaemons/$LABEL.plist"
+CONFIG="/usr/local/etc/feilian-control.conf"
+APP="/Applications/飞连控制.app"
+
+chown -R root:wheel "$DEST" /usr/local/bin/feilianctl "$PLIST"
+if [[ -d "$APP" ]]; then
+  chown -R root:wheel "$APP"
+fi
+chmod 755 "$DEST/feilian-daemon" "$DEST/feilian-auth" "$DEST"/*.sh /usr/local/bin/feilianctl
+chmod 644 "$PLIST"
+
+mkdir -p /usr/local/etc
+if [[ ! -f "$CONFIG" ]]; then
+  printf 'AUTH_MODE=none\n' > "$CONFIG"
+fi
+chown root:wheel "$CONFIG"
+chmod 644 "$CONFIG"
+
+rm -f "/var/run/$LABEL.sock"
+launchctl enable "system/$LABEL"
+launchctl bootstrap system "$PLIST" 2>/dev/null || launchctl kickstart -k "system/$LABEL" 2>/dev/null || true
+
+exit 0

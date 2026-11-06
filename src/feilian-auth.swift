@@ -3,6 +3,7 @@ import LocalAuthentication
 import Darwin
 
 let socketPath = "/var/run/com.feiliancontrol.helper.sock"
+let configPath = "/usr/local/etc/feilian-control.conf"
 let args = CommandLine.arguments
 
 guard args.count == 2, args[1] == "stop" || args[1] == "start" else {
@@ -66,21 +67,39 @@ func sendCommand(_ command: String) -> Int32 {
     return text.hasPrefix("status=0\n") ? 0 : 1
 }
 
-let context = LAContext()
-var authError: NSError?
-guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &authError) else {
-    let message = "Touch ID unavailable: \(authError?.localizedDescription ?? "unknown")\n"
-    FileHandle.standardError.write(Data(message.utf8))
-    exit(2)
+func readAuthMode() -> String {
+    guard let text = try? String(contentsOfFile: configPath, encoding: .utf8) else {
+        return "none"
+    }
+    for line in text.split(separator: "\n") {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        guard trimmed.hasPrefix("AUTH_MODE=") else { continue }
+        let value = String(trimmed.dropFirst("AUTH_MODE=".count))
+            .trimmingCharacters(in: .whitespaces)
+        return value == "none" ? "none" : "touchid"
+    }
+    return "touchid"
 }
 
-context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason) { success, error in
-    if !success {
-        let message = "Authentication failed: \(error?.localizedDescription ?? "cancelled")\n"
+if readAuthMode() == "touchid" {
+    let context = LAContext()
+    var authError: NSError?
+    guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &authError) else {
+        let message = "Touch ID unavailable: \(authError?.localizedDescription ?? "unknown")\n"
         FileHandle.standardError.write(Data(message.utf8))
-        exit(1)
+        exit(2)
     }
+
+    context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason) { success, error in
+        if !success {
+            let message = "Authentication failed: \(error?.localizedDescription ?? "cancelled")\n"
+            FileHandle.standardError.write(Data(message.utf8))
+            exit(1)
+        }
+        exit(sendCommand(command))
+    }
+
+    RunLoop.main.run()
+} else {
     exit(sendCommand(command))
 }
-
-RunLoop.main.run()

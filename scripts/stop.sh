@@ -1,6 +1,6 @@
 #!/bin/bash
 # 停止飞连（CorpLink）界面及全部后台服务，并禁止它们自动恢复。
-# 恢复请运行同目录的 start.sh，或双击 ~/Applications/恢复飞连.app。
+# 恢复请点击菜单栏“飞连控制”图标，或运行 feilianctl start。
 # 只操作飞连自己的 launchd 任务和进程路径，不触碰其他软件。
 set -u
 
@@ -74,4 +74,5 @@ else
   echo "已停止：没有发现飞连相关进程。"
 fi
 echo
-echo "恢复方法：双击 ~/Applications/恢复飞连.app，或运行 sudo /usr/local/libexec/feilian/start.sh"
+echo "恢复方法：点击菜单栏“飞连控制”图标 → 恢复飞连，或运行 feilianctl start"
+echo "（也可以运行 sudo /usr/local/libexec/feilian/start.sh）"

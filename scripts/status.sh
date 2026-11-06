@@ -14,9 +14,14 @@ echo "== 系统级任务的启用状态 =="
 launchctl print-disabled system 2>/dev/null | grep -iE 'corplink|com\.feiliancontrol\.helper' || echo "(无记录)"
 
 echo
-echo "== Touch ID 助手 =="
+echo "== 飞连控制助手 =="
 if launchctl print system/com.feiliancontrol.helper >/dev/null 2>&1; then
   echo "运行中"
+  config="/usr/local/etc/feilian-control.conf"
+  if [[ -r "$config" ]]; then
+    mode="$(/usr/bin/awk -F= '/^AUTH_MODE=/{print $2; exit}' "$config")"
+    echo "验证方式：${mode:-touchid}"
+  fi
 else
-  echo "未运行（安装：sudo make install）"
+  echo "未运行（安装：sudo make install 或重新安装 pkg）"
 fi
