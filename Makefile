@@ -99,7 +99,7 @@ pkg: build
 	xattr -cr "$(PKGROOT)"
 	pkgbuild --root "$(PKGROOT)" --component-plist pkg/component.plist --identifier com.feiliancontrol.pkg --version $(VERSION) --scripts pkg/scripts --ownership recommended "$(COMPONENT)"
 	productbuild --distribution pkg/Distribution --resources pkg/resources --package-path "$(BUILD)" "$(PKG)"
-	shasum -a 256 "$(PKG)" > "$(PKG).sha256"
+	shasum -a 256 "$(PKG)" | awk '{print $$1}' > "$(PKG).sha256"
 	@echo "已生成：$(PKG)"
 	@cat "$(PKG).sha256"
 

@@ -28,7 +28,7 @@ GitHub 工程：<https://github.com/zghstart/feilian-control>
 > **关于签名**：当前发布包没有使用 Apple Developer ID 签名和公证。如果 macOS 提示“无法打开，因为无法验证开发者”，请右键点击 `.pkg` → **打开**。仍然不行时，可以在终端运行：
 >
 > ```bash
-> sudo installer -pkg ~/Downloads/FeiLianControl-0.2.0.pkg -target /
+> sudo installer -pkg ~/Downloads/FeiLianControl-*.pkg -target /
 > ```
 >
 > 如果你有 Apple Developer 账号，可以自行用 Developer ID 重新签名并公证，获得真正的双击安装体验。
@@ -239,7 +239,7 @@ rm -rf ~/Applications/飞连控制.app
 右键 `.pkg` → **打开**；或：
 
 ```bash
-sudo installer -pkg ~/Downloads/FeiLianControl-0.2.0.pkg -target /
+sudo installer -pkg ~/Downloads/FeiLianControl-*.pkg -target /
 ```
 
 **`cannot connect to feilian helper`**
