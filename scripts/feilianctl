@@ -1,0 +1,17 @@
+#!/bin/bash
+# 用户级入口：先弹 Touch ID，再把 stop/start 发给 root 助手。
+# status 不需要 root，也不弹 Touch ID。
+set -u
+
+case "${1:-}" in
+  stop|start)
+    exec /usr/local/libexec/feilian/feilian-auth "$1"
+    ;;
+  status)
+    exec /bin/bash /usr/local/libexec/feilian/status.sh
+    ;;
+  *)
+    echo "usage: feilianctl stop|start|status" >&2
+    exit 64
+    ;;
+esac
