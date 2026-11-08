@@ -11,8 +11,11 @@ permissions:
 jobs:
   release:
     runs-on: macos-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Verify release tag
+        run: make check-tag TAG="$GITHUB_REF_NAME"
       - name: Check
         run: make check
       - name: Build package
@@ -21,8 +24,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          pkg="build/FeiLianControl-${GITHUB_REF_NAME#v}.pkg"
           gh release create "$GITHUB_REF_NAME" \
-            build/FeiLianControl-*.pkg \
-            build/FeiLianControl-*.pkg.sha256 \
+            "$pkg" \
+            "$pkg.sha256" \
             --title "FeiLian Control $GITHUB_REF_NAME" \
             --generate-notes

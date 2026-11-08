@@ -1,6 +1,8 @@
 #!/bin/bash
 # 安装前先卸载旧版助手，避免 launchctl 冲突。
 set -e
+PATH="/usr/bin:/bin:/usr/sbin:/sbin"
+export PATH
 
 LABEL="com.feiliancontrol.helper"
 launchctl bootout "system/$LABEL" 2>/dev/null || true

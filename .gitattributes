@@ -1,0 +1,12 @@
+* text=auto
+
+Makefile text eol=lf
+*.sh text eol=lf
+*.swift text eol=lf
+*.plist text eol=lf
+*.applescript text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+scripts/feilianctl text eol=lf
+pkg/scripts/preinstall text eol=lf
+pkg/scripts/postinstall text eol=lf

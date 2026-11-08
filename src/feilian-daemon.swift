@@ -4,13 +4,13 @@ import Darwin
 // Root LaunchDaemon for the FeiLian control helper.
 //
 // Security model:
-// - Only accepts "stop" and "start".
+// - Only accepts "stop", "start" and the read-only "ping" health check.
 // - Only accepts connections from the current console user's UID.
 // - Only accepts connections whose executable is the installed feilian-auth binary.
 // - Runs fixed, root-owned scripts. Never accepts a command or path from the client.
 
 let socketPath = "/var/run/com.feiliancontrol.helper.sock"
-let scriptDir = "/usr/local/libexec/feilian"
+let scriptDir = "/Library/PrivilegedHelperTools/feilian-control"
 let clientPath = scriptDir + "/feilian-auth"
 let allowedScripts: [String: String] = [
     "stop": scriptDir + "/stop.sh",
@@ -57,8 +57,13 @@ func writeAll(_ fd: Int32, _ string: String) {
         var offset = 0
         while offset < raw.count {
             let n = write(fd, base.advanced(by: offset), raw.count - offset)
-            if n <= 0 { break }
-            offset += n
+            if n > 0 {
+                offset += n
+            } else if n < 0 && errno == EINTR {
+                continue
+            } else {
+                break
+            }
         }
     }
 }
@@ -76,8 +81,10 @@ func runScript(_ path: String) -> (String, Int32) {
     process.standardError = pipe
     do {
         try process.run()
-        process.waitUntilExit()
+        // Drain stdout/stderr before waiting: a full pipe would otherwise
+        // block the child while the daemon waits for it to exit.
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
         let output = String(data: data, encoding: .utf8) ?? ""
         return (output, process.terminationStatus)
     } catch {
@@ -123,6 +130,11 @@ func handleClient(_ fd: Int32) {
 
     let command = String(bytes: buffer[0..<n], encoding: .utf8)?
         .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    if command == "ping" {
+        writeAll(fd, "status=0\nhelper responsive\n")
+        return
+    }
+
     guard let script = allowedScripts[command] else {
         log("rejected command from uid \(uid)")
         writeAll(fd, "unknown command\n")

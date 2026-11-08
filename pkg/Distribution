@@ -3,7 +3,10 @@
     <title>飞连控制</title>
     <organization>com.feiliancontrol</organization>
     <domains enable_localSystem="true" enable_currentUserHome="false" enable_anywhere="false"/>
-    <options customize="never" require-scripts="false" hostArchitectures="x86_64,arm64"/>
+    <allowed-os-versions>
+        <os-version min="13.0"/>
+    </allowed-os-versions>
+    <options customize="never" require-scripts="false" hostArchitectures="arm64"/>
     <welcome file="welcome.html" mime-type="text/html"/>
     <license file="LICENSE.txt" mime-type="text/plain"/>
     <choices-outline>
