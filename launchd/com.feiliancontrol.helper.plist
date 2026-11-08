@@ -6,7 +6,7 @@
 	<string>com.feiliancontrol.helper</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/usr/local/libexec/feilian/feilian-daemon</string>
+		<string>/Library/PrivilegedHelperTools/feilian-control/feilian-daemon</string>
 	</array>
 	<key>RunAtLoad</key>
 	<true/>

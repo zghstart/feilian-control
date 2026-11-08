@@ -1,33 +1,119 @@
 #!/bin/bash
 # 用户级入口：
-#   stop/start 通过 root 助手执行固定脚本，是否验证由 /usr/local/etc/feilian-control.conf 决定
+#   stop/start 通过 root 助手执行固定脚本，是否验证由 /Library/PrivilegedHelperTools/feilian-control/auth.conf 决定
 #   stop-ui    只退出飞连界面
-#   status/auth 不需要 root，也不弹验证
+#   status/auth/doctor 不需要 root，也不弹验证
 set -u
 
-CONFIG="/usr/local/etc/feilian-control.conf"
+VERSION="0.3.0"
+LIBEXEC="/Library/PrivilegedHelperTools/feilian-control"
+CONFIG="/Library/PrivilegedHelperTools/feilian-control/auth.conf"
+
+print_help() {
+  cat <<'EOF'
+飞连控制（FeiLian Control）
+
+用法：
+  feilianctl stop       停用飞连界面及全部后台服务
+  feilianctl start      恢复飞连后台服务并打开客户端
+  feilianctl stop-ui    仅退出飞连界面，不停止后台服务
+  feilianctl status     查看进程、launchd 和助手状态（只读）
+  feilianctl auth       查看当前验证方式（只读）
+  feilianctl doctor     检查安装、配置和助手连接（只读）
+  feilianctl uninstall  恢复飞连并卸载控制工具（需要管理员授权）
+  feilianctl version    显示版本
+  feilianctl help       显示此帮助
+
+停用不会卸载飞连；配置和日志会保留。
+日常操作失败时，请先运行：feilianctl doctor
+项目主页：https://github.com/zghstart/feilian-control
+EOF
+}
+
+require_executable() {
+  local path="$1"
+  if [[ ! -x "$path" ]]; then
+    echo "错误：飞连控制助手尚未正确安装（缺少 ${path}）。" >&2
+    echo "请重新安装 Release 中的 pkg；源码用户可运行 make build && sudo make install。" >&2
+    exit 69
+  fi
+}
+
+if (( $# > 1 )) && [[ "${1:-}" != "uninstall" ]]; then
+  echo "错误：$1 不接受额外参数。" >&2
+  echo "运行 feilianctl help 查看用法。" >&2
+  exit 64
+fi
 
 case "${1:-}" in
   stop|start)
-    exec /usr/local/libexec/feilian/feilian-auth "$1"
+    require_executable "$LIBEXEC/feilian-auth"
+    exec "$LIBEXEC/feilian-auth" "$1"
     ;;
   stop-ui)
-    /usr/bin/pkill -TERM -x CorpLink 2>/dev/null || true
-    echo "已请求退出飞连界面"
+    /usr/bin/pkill -TERM -x CorpLink 2>/dev/null
+    result=$?
+    case "$result" in
+      0)
+        echo "已请求退出飞连界面；后台服务保持原状。"
+        ;;
+      1)
+        echo "飞连界面当前未运行，无需退出。"
+        ;;
+      *)
+        echo "退出飞连界面失败（pkill 退出码 ${result}）。" >&2
+        exit "$result"
+        ;;
+    esac
     ;;
   status)
-    exec /bin/bash /usr/local/libexec/feilian/status.sh
+    require_executable "$LIBEXEC/status.sh"
+    exec "$LIBEXEC/status.sh"
+    ;;
+  doctor)
+    require_executable "$LIBEXEC/doctor.sh"
+    exec "$LIBEXEC/doctor.sh"
+    ;;
+  uninstall)
+    require_executable "$LIBEXEC/uninstall-helper.sh"
+    shift
+    exec "$LIBEXEC/uninstall-helper.sh" "$@"
     ;;
   auth)
+    if ! source "$LIBEXEC/auth-common.sh"; then
+      echo "配置解析组件不存在或不可读：$LIBEXEC/auth-common.sh。请重新安装。" >&2
+      exit 69
+    fi
     if [[ -r "$CONFIG" ]]; then
-      mode="$(/usr/bin/awk -F= '/^AUTH_MODE=/{print $2; exit}' "$CONFIG")"
-      echo "AUTH_MODE=${mode:-touchid}"
+      mode="$(read_auth_mode "$CONFIG")"
+      case "$mode" in
+        none|touchid)
+          echo "AUTH_MODE=$mode"
+          ;;
+        *)
+          echo "配置错误：AUTH_MODE=${mode}（仅支持 none 或 touchid）。" >&2
+          echo "请修正 ${CONFIG}，或重新安装。" >&2
+          exit 65
+          ;;
+      esac
     else
-      echo "AUTH_MODE=none (default)"
+      echo "配置不存在或不可读：${CONFIG}。" >&2
+      echo "请运行 feilianctl doctor；为避免意外跳过验证，stop/start 将拒绝执行。" >&2
+      exit 66
     fi
     ;;
+  version|--version|-v)
+    echo "FeiLian Control $VERSION"
+    ;;
+  help|--help|-h)
+    print_help
+    ;;
+  "")
+    print_help
+    ;;
   *)
-    echo "usage: feilianctl stop|start|stop-ui|status|auth" >&2
+    echo "错误：未知命令“$1”。" >&2
+    echo "运行 feilianctl help 查看可用命令。" >&2
     exit 64
     ;;
 esac
